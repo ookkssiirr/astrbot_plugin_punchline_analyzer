@@ -1,0 +1,121 @@
+{
+  "enable_auto_trigger": {
+    "type": "bool",
+    "description": "启用免斜杠自动触发（如“笑点解析 最近30条”）",
+    "hint": "默认打开。打开后笑点解析不需要斜杠指令也能触发（如直接发送“笑点解析 最近30条”或 @机器人 发送“笑点解析”）；关闭后必须使用斜杠指令（如 /笑点解析）",
+    "default": true
+  },
+  "group_filter_mode": {
+    "type": "string",
+    "description": "群聊过滤模式",
+    "options": [
+      "whitelist",
+      "blacklist",
+      "all"
+    ],
+    "hint": "群聊过滤规则模式：whitelist（白名单，仅列表内群可用）、blacklist（黑名单，屏蔽列表内群）、all（全部群聊均允许使用）。名单留空时不限制",
+    "default": "whitelist"
+  },
+  "filter_groups": {
+    "type": "list",
+    "description": "群号过滤名单",
+    "hint": "配合群聊过滤模式生效的群号列表（如 [\"123456\", \"789012\"]）。白名单模式下仅列表内群可用；黑名单模式下列表内群被屏蔽；全部群模式下忽略本列表。留空表示不限制",
+    "default": []
+  },
+  "model_provider_id": {
+    "type": "string",
+    "description": "模型选择",
+    "_special": "select_provider",
+    "hint": "选择用于笑点解析的模型提供商（自动读取系统中已配置的模型提供商；留空则自动选用当前会话提供商或多模态视觉模型，如 Gemini）",
+    "default": ""
+  },
+  "user_cooldown_seconds": {
+    "type": "float",
+    "description": "用户冷却时间（秒）",
+    "hint": "每个用户连续发起笑点解析的冷却间隔时间，默认 15 秒，设为 0 表示关闭；按平台、机器人、群、用户严格隔离，自动入口与斜杠指令共用冷却",
+    "default": 15.0
+  },
+  "group_cooldown_seconds": {
+    "type": "float",
+    "description": "群聊冷却时间（秒）",
+    "hint": "同一个群连续发起笑点解析的冷却间隔时间，默认 5 秒，设为 0 表示关闭；按平台、机器人、群隔离不串群，与用户冷却同时生效",
+    "default": 5.0
+  },
+  "max_punchlines": {
+    "type": "int",
+    "description": "最多笑点数量",
+    "hint": "单次回答中最多列出的笑点条数（范围 1～10，默认 5）；材料不足或无确凿笑点时实事求是说明，严禁凑数编造",
+    "default": 5
+  },
+  "analysis_detail": {
+    "type": "string",
+    "description": "解析详细程度",
+    "hint": "控制每个笑点的解释长度：brief（简短）、standard（标准）、detailed（详细），默认 standard；不改变约定输出格式",
+    "options": [
+      "brief",
+      "standard",
+      "detailed"
+    ],
+    "default": "standard"
+  },
+  "max_history_count": {
+    "type": "int",
+    "description": "「高级设置」最近记录回溯上限",
+    "hint": "「最近30条」指令默认拉取的消息条数上限（2~50 条，默认 30）",
+    "default": 30
+  },
+  "max_media_mb": {
+    "type": "int",
+    "description": "「高级设置」单视频体积硬上限 (MB)",
+    "hint": "允许处理的视频与媒体文件体积上限（MB），硬上限 50MB（允许用户调低 5~50，配置超过 50 时自动钳制为 50 以防爆内存）",
+    "default": 50
+  },
+  "max_video_duration": {
+    "type": "int",
+    "description": "「高级设置」单视频时长硬上限 (秒)",
+    "hint": "允许抽帧分析的最大视频时长（秒），硬上限 180 秒（允许用户调低 10~180，配置超过 180 时自动钳制为 180）",
+    "default": 180
+  },
+  "video_sample_frames": {
+    "type": "int",
+    "description": "「高级设置」单视频抽帧硬上限 (帧)",
+    "hint": "视频动态画面采样帧数，硬上限 4 帧（允许用户调低 1~4，配置超过 4 时自动钳制为 4）",
+    "default": 4
+  },
+  "max_forward_depth": {
+    "type": "int",
+    "description": "「高级设置」合并转发最大展开深度",
+    "hint": "合并转发消息最大递归展开深度（1~5 层，默认 3）",
+    "default": 3
+  },
+  "max_forward_messages": {
+    "type": "int",
+    "description": "「高级设置」合并转发最大解析消息数",
+    "hint": "合并转发消息最大解析消息条数（5~100 条，默认 30）",
+    "default": 30
+  },
+  "max_forward_images": {
+    "type": "int",
+    "description": "「高级设置」合并转发最大传入图片数",
+    "hint": "合并转发或历史记录中传入视觉模型的最大图片数量（1~15 张，默认 10）",
+    "default": 10
+  },
+  "max_wait_queue": {
+    "type": "int",
+    "description": "「高级设置」最大等待排队数",
+    "hint": "最大允许排队等待的任务数量，超额则立即返回提示（1~10，默认 2）",
+    "default": 2
+  },
+  "queue_wait_seconds": {
+    "type": "float",
+    "description": "「高级设置」排队最大等待超时 (秒)",
+    "hint": "排队等待空闲的最大等待时间（秒，默认 6.0）",
+    "default": 6.0
+  },
+  "timeout_seconds": {
+    "type": "int",
+    "description": "「高级设置」任务全过程超时 (秒)",
+    "hint": "单次任务全过程超时时间（秒，涵盖素材准备、抽帧与模型生成，默认 60）",
+    "default": 60
+  }
+}
