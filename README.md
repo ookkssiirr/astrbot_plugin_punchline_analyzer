@@ -1,4 +1,4 @@
-# AstrBot 笑点解析插件 (Punchline Analyzer)
+<img width="1557" height="378" alt="image" src="https://github.com/user-attachments/assets/3bc9064c-b76c-4509-a588-5d12073ee52c" /># AstrBot 笑点解析插件 (Punchline Analyzer)
 
 <p align="center">
  <img src="https://img.shields.io/badge/AstrBot->=4.0.0-blue.svg" alt="AstrBot Version">
@@ -14,7 +14,7 @@
 
 ## 💡 项目渊源：致敬「沈阳美食家」
 
-本插件的设计灵感与核心幽默风格深度来源于社区知名的 **ai沈阳美食家**（`ai-shen-yang-mei-shi-jia`）开源梗文化项目。
+本插件的设计灵感与核心幽默风格参考了开源项目 [AI 沈阳美食家](https://github.com/clean-master/ai-shen-yang-mei-shi-jia)，感谢原项目作者及贡献者。
 
 - **冷峻解构的经典风格**：以近乎学术论文、实验报告般的客观严谨笔触，一本正经地剖析群聊中荒诞离奇、反差强烈的抽象发言与梗点。
 - **标志性的三段式格式规范**：
