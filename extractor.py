@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 import re
+import uuid
+from PIL import Image as PILImage
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -63,6 +65,114 @@ class TargetExtractor:
         self.temp_dir = temp_dir
 
     async def extract_target(
+        self,
+        event: AstrMessageEvent,
+        user_plain_text: str,
+        is_history_mode: bool = False,
+        requested_count: int = 30,
+        task_dir: Path | None = None,
+        req_ctx: RequestContext | None = None,
+    ) -> TargetResult:
+        """主入口：根据用户当前输入与上下文判定解析目标"""
+        active_task_dir = task_dir or self.temp_dir
+        active_task_dir.mkdir(parents=True, exist_ok=True)
+
+        target = await self._do_extract_target(
+            event=event,
+            user_plain_text=user_plain_text,
+            is_history_mode=is_history_mode,
+            requested_count=requested_count,
+            task_dir=active_task_dir,
+            req_ctx=req_ctx,
+        )
+
+        if target and target.images:
+            norm_imgs, new_temps = await self._normalize_candidate_images(
+                target.images,
+                task_dir=active_task_dir,
+            )
+            target.images = norm_imgs
+            if new_temps:
+                target.temp_files.extend(new_temps)
+
+        return target
+
+    async def _normalize_candidate_images(
+        self,
+        images: list[str],
+        task_dir: Path,
+        max_edge: int = 4000,
+    ) -> tuple[list[str], list[str]]:
+        """
+        对传入大模型的候选图片做安全规范化与长图压缩：
+        若单边尺寸超过 max_edge（默认 4000 像素），自动等比缩放并转存为标准 Baseline RGB JPEG，
+        彻底规避上游 LLM 视觉网关因超高分辨率或 Progressive 格式不兼容引发的 400 unsupported image 报错。
+        """
+        if not images:
+            return [], []
+
+        normalized_images: list[str] = []
+        new_temp_files: list[str] = []
+
+        for img_ref in images:
+            try:
+                from astrbot.core.utils.media_utils import MediaResolver
+                async with MediaResolver(img_ref, media_type="image").as_path() as resolved_file:
+                    local_path = resolved_file.path
+                    if not local_path.exists():
+                        normalized_images.append(img_ref)
+                        continue
+
+                    with PILImage.open(local_path) as im:
+                        w, h = im.size
+                        is_progressive = bool(im.info.get("progressive"))
+                        needs_resize = max(w, h) > max_edge
+
+                        if needs_resize or (is_progressive and max(w, h) > 2000):
+                            scale = 1.0
+                            if needs_resize:
+                                scale = float(max_edge) / float(max(w, h))
+                            new_w = max(1, int(round(w * scale)))
+                            new_h = max(1, int(round(h * scale)))
+
+                            im_converted = im
+                            if im_converted.mode in ("RGBA", "LA") or (
+                                im_converted.mode == "P" and "transparency" in getattr(im_converted, "info", {})
+                            ):
+                                bg = PILImage.new("RGB", (w, h), (255, 255, 255))
+                                bg.paste(im_converted, mask=im_converted.split()[-1])
+                                im_converted = bg
+                            elif im_converted.mode != "RGB":
+                                im_converted = im_converted.convert("RGB")
+
+                            if needs_resize:
+                                resample_filter = getattr(PILImage, "Resampling", PILImage).LANCZOS
+                                im_converted = im_converted.resize((new_w, new_h), resample_filter)
+
+                            out_name = f"normalized_img_{uuid.uuid4().hex[:8]}.jpg"
+                            out_path = task_dir / out_name
+                            im_converted.save(
+                                str(out_path),
+                                format="JPEG",
+                                quality=85,
+                                progressive=False,
+                                optimize=True,
+                            )
+                            logger.info(
+                                f"[笑点解析] 检测到长图/高分辨率图片 ({w}x{h}, progressive={is_progressive})，"
+                                f"已自动等比缩放至 ({new_w}x{new_h}) 并转存为标准 Baseline JPEG -> {out_path.name}"
+                            )
+                            normalized_images.append(str(out_path))
+                            new_temp_files.append(str(out_path))
+                        else:
+                            normalized_images.append(img_ref)
+            except Exception as e:
+                logger.warning(f"[笑点解析] 图片预处理/尺寸规范化跳过或异常 ({img_ref}): {e}")
+                normalized_images.append(img_ref)
+
+        return normalized_images, new_temp_files
+
+    async def _do_extract_target(
         self,
         event: AstrMessageEvent,
         user_plain_text: str,

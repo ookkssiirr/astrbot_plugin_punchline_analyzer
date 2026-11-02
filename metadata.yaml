@@ -2,9 +2,9 @@ name: astrbot_plugin_punchline_analyzer
 display_name: 笑点解析
 desc: 智能解析群聊发言、图片表情包、短视频、合并转发聊天记录及分享中的幽默笑点与梗，风格源自经典「ai沈阳美食家」项目。
 short_desc: 源自经典「ai沈阳美食家」风格，智能解析群聊发言、图片、短视频、合并转发中的幽默笑点与梗
-version: v1.0.0
+version: v1.0.1
 author: AreSet
-repo: https://github.com/ookkssiirr/astrbot_plugin_punchline_analyzer
+repo: https://github.com/AreSet01/astrbot_plugin_punchline_analyzer
 astrbot_version: ">=4.0.0"
 support_platforms:
   - aiocqhttp
